@@ -17,7 +17,6 @@ import android.widget.Toast
 import java.io.IOException
 
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
-//Ref VIDEO --- https://www.youtube.com/watch?v=hca1_yzT66A&ab_channel=FluxIT
 
     private lateinit var mNfcAdapter: NfcAdapter
     private lateinit var mUrl: String
