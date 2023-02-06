@@ -9,6 +9,7 @@ import android.nfc.Tag
 import android.nfc.tech.Ndef
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     private lateinit var mNfcAdapter: NfcAdapter
     private lateinit var mUrl: String
+    private val TAG = "vini"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +31,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
+        Log.d(TAG, " --- ${mNfcAdapter.isEnabled}")
         //To check that the device has NFC technology
         if (mNfcAdapter == null) {
             Toast.makeText(this, "This device does not have NFC technology.", Toast.LENGTH_LONG)
@@ -46,6 +49,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             }else{
                 "${"https://www."}${mTextContent.text.trim()}${".com"}"
             }
+            Log.d(TAG, " --- mUrl $mUrl")
             Toast.makeText(
                 this,
                 "URL created: $mUrl . Move the device close to the NFC tag",
@@ -57,37 +61,43 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     override fun onTagDiscovered(tag: Tag) {
         // NFC Tags can support different technologies. In this case we will use Ndef Technology
-        val mNdef = Ndef.get(tag);
+        val mNdef = Ndef.get(tag)
 
         if (mNdef != null) {
 
             // We create an Ndef Record from a Uri with our Url
-            val mRecord = NdefRecord.createUri(mUrl);
+            val mRecord = NdefRecord.createUri(mUrl)
 
             // We add the NdefRecord to our NdefMessage
             val mNdefMsg = NdefMessage(mRecord)
 
             //We try to open a connection and write the Tag with our NdefMessage
             try {
-                mNdef.connect();
-                mNdef.writeNdefMessage(mNdefMsg);
+                mNdef.connect()
+                mNdef.writeNdefMessage(mNdefMsg)
 
                 //If the Tag was written successfully show the Toast
                 runOnUiThread {
-                    Toast.makeText(this, "Tag escrito con éxito", Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, " --- Tag written successfully")
+
+                    Toast.makeText(this, "Tag written successfully", Toast.LENGTH_SHORT).show()
                 }
 
                 // Make a Sound
                 try {
+                    Log.d(TAG, " --- Make a Sound")
+
                     val notification =
-                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                     val ringtone = RingtoneManager.getRingtone(
                         applicationContext,
                         notification
-                    );
-                    ringtone.play();
+                    )
+                    ringtone.play()
                 } catch (e: Exception) {
                     // Some error playing sound
+                    Log.d(TAG, " --- Error trying to write")
+
                     runOnUiThread {
                         Toast.makeText(this, "Error trying to write", Toast.LENGTH_SHORT)
                             .show()
@@ -98,8 +108,11 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 //if the Tag is invalid
             } finally {
                 // We close the connection with the Tag (Let's avoid errors and misuse of resources)
+
+                Log.d(TAG, " --- close the connection")
+
                 try {
-                    mNdef.close();
+                    mNdef.close()
                 } catch (e: IOException) {
                     // We show a message in case the operation has been interrupted
                     Toast.makeText(this, "Error operation has been interrupted", Toast.LENGTH_SHORT)
@@ -107,6 +120,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 }
             }
         } else {
+            Log.d(TAG, " --- Tag Invalid")
+
             Toast.makeText(this, "Tag Invalid", Toast.LENGTH_SHORT).show()
         }
     }
@@ -134,7 +149,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     override fun onPause() {
         super.onPause()
         //We disabled the reading mode so that we only detect Tags with the App in the foreground
-        mNfcAdapter.disableReaderMode(this);
+        mNfcAdapter.disableReaderMode(this)
     }
 
     private fun View.hideKeyboard() {
